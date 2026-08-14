@@ -42,7 +42,7 @@ async function submitOrder() {
     formData.append('photo', fileInput.files[0]);
 
     try {
-        const response = await fetch('/.netlify/functions/verifypls', {
+        const response = await fetch('/.netlify/functions/verifypls.js', {
             method: 'POST',
             body: formData
         });
