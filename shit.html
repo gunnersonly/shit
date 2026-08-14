@@ -41,25 +41,31 @@ async function submitOrder() {
     const formData = new FormData();
     formData.append('photo', fileInput.files[0]);
 
-   try {
-        const response = await fetch('/.netlify/functions/verifypls', { // Removed .js here
+    try {
+        const response = await fetch('/.netlify/functions/verifypls', {
             method: 'POST',
             body: formData
         });
 
-        const result = await response.json();
+        const responseText = await response.text();
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (e) {
+            throw new Error(`Server returned HTML/Text instead of JSON: ${responseText.substring(0, 150)}`);
+        }
 
         if (response.ok && result.success) {
             status.innerText = "✅ Order Dispatched!";
             alert("Success! Order sent to the bot.");
             btn.innerText = "Done ✅";
         } else {
-            alert(`Verification Failed: ${result.message || "Invalid receipt."}`);
+            alert(`Verification Failed: ${result.message || result.error || "Invalid receipt."}`);
             resetForm();
         }
     } catch (error) {
-        console.error(error);
-        alert("Network error occurred.");
+        console.error("Detailed Error:", error);
+        alert(`Error Details: ${error.message}`);
         resetForm();
     }
 }
