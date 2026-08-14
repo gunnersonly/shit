@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Checkout</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 400px; margin: auto; background-color: #f9f9f9; }
+        .checkout-box { border: 1px solid #0088cc; padding: 25px; border-radius: 12px; background: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        button { width: 100%; padding: 14px; background: #0088cc; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        button:disabled { background: #cccccc; cursor: not-allowed; }
+        .status-msg { font-weight: bold; text-align: center; margin-top: 15px; color: #555; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="checkout-box">
+    <h2 style="color: #0088cc; text-align: center; margin-top: 0;">🛒 Secure Checkout</h2>
+    <p>Upload your payment screenshot:</p>
+    <input type="file" id="receiptFile" accept="image/*" style="width: 100%; margin-bottom: 20px;">
+
+    <button type="button" onclick="submitOrder()" id="actionBtn">🚀 Submit Order</button>
+    <div id="statusTracker" class="status-msg"></div>
+</div>
+
+<script>
+async function submitOrder() {
+    const btn = document.getElementById('actionBtn');
+    const status = document.getElementById('statusTracker');
+    const fileInput = document.getElementById('receiptFile');
+
+    if (fileInput.files.length === 0) {
+        alert("Please upload your screenshot first!");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Processing...";
+    status.innerText = "🔍 Verifying payment via backend...";
+
+    const formData = new FormData();
+    formData.append('photo', fileInput.files[0]);
+
+    try {
+        const response = await fetch('/.netlify/functions/verify', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            status.innerText = "✅ Order Dispatched!";
+            alert("Success! Order sent to the bot.");
+            btn.innerText = "Done ✅";
+        } else {
+            alert(`Verification Failed: ${result.message || "Invalid receipt."}`);
+            resetForm();
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Network error occurred.");
+        resetForm();
+    }
+}
+
+function resetForm() {
+    const btn = document.getElementById('actionBtn');
+    const status = document.getElementById('statusTracker');
+    btn.disabled = false;
+    btn.innerText = "🚀 Submit Order";
+    status.innerText = "";
+}
+</script>
+
+</body>
+</html>
